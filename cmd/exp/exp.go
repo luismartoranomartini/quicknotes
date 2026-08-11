@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"os"
+	"time"
 )
 
 type TemplateData struct {
@@ -11,14 +12,18 @@ type TemplateData struct {
 }
 
 func main() {
-	tmpl, err := template.ParseFiles("hello.html")
-	// fmt.Println(tmp.Name()) // hello.html
+	t, err := template.ParseFiles("layout1.html", "home.html", "footer.html", "header.html")
+	tempo := time.Now().Year()
+
+	// fmt.Println(t.Name()) // hello.html
+	// // tmpl = tmpl.Lookup("a")
+	// fmt.Println(t.DefinedTemplates())
 	if err != nil {
 		panic(err)
 	}
 
-	data := TemplateData{Name: "Luis", Age: 49}
-	err = tmpl.Execute(os.Stdout, data)
+	// err = tmpl.Execute(os.Stdout, nil)
+	err = t.ExecuteTemplate(os.Stdout, "layout1.html", tempo)
 	if err != nil {
 		panic(err)
 	}
