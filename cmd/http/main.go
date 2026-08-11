@@ -8,6 +8,11 @@ import (
 
 // home
 func noteList(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
 	files := []string{
 		"views/templates/base.html",
 		"views/templates/pages/home.html",
@@ -65,6 +70,8 @@ func noteCreate(w http.ResponseWriter, r *http.Request) {
 func main() {
 	PORT := ":8080"
 	mux := http.NewServeMux()
+
+	staticHandler := http.FileServer(http.Dir("/views/static"))
 
 	mux.HandleFunc("/", noteList)
 	mux.HandleFunc("/note/view", noteView)
