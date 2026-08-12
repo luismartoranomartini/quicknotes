@@ -1,30 +1,31 @@
 package main
 
 import (
-	"html/template"
-	"os"
-	"time"
+	"flag"
+	"fmt"
 )
 
-type TemplateData struct {
-	Name string
-	Age  int
-}
-
 func main() {
-	t, err := template.ParseFiles("layout1.html", "home.html", "footer.html", "header.html")
-	tempo := time.Now().Year()
+	var port string
+	var verbose bool
+	var valor int
 
-	// fmt.Println(t.Name()) // hello.html
-	// // tmpl = tmpl.Lookup("a")
-	// fmt.Println(t.DefinedTemplates())
-	if err != nil {
-		panic(err)
+	// port := flag.StringVar(&port, "port", "7000", "Server port")
+	flag.StringVar(&port, "port", "7000", "Server port")
+	flag.StringVar(&port, "p", "7000", "Server port")
+	flag.IntVar(&valor, "valor", 0, "some value")
+
+	flag.BoolVar(&verbose, "v", false, "Verbose mode")
+
+	flag.Parse()
+
+	if verbose {
+
+		fmt.Println("Server is running on port", port)
+		fmt.Println("Valor", valor)
+	} else {
+		fmt.Println(port)
 	}
 
-	// err = tmpl.Execute(os.Stdout, nil)
-	err = t.ExecuteTemplate(os.Stdout, "layout1.html", tempo)
-	if err != nil {
-		panic(err)
-	}
+	// port := fmt.Println("Server is running on port", *port)
 }
