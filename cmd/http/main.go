@@ -68,7 +68,9 @@ func noteCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	PORT := ":8080"
+	config := loadConfig()
+	fmt.Printf("Servidor rodando na porta %s", config.ServerPort)
+
 	mux := http.NewServeMux()
 
 	staticHandler := http.FileServer(http.Dir("views/static"))
@@ -79,6 +81,5 @@ func main() {
 	mux.HandleFunc("/note/new", noteNew)
 	mux.HandleFunc("/note/create", noteCreate)
 
-	fmt.Printf("Servidor rodando na porta %s\n", PORT)
-	http.ListenAndServe(PORT, mux)
+	http.ListenAndServe(fmt.Sprintf(":%s", config.ServerPort), mux)
 }
