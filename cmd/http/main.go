@@ -71,7 +71,8 @@ func main() {
 	PORT := ":8080"
 	mux := http.NewServeMux()
 
-	staticHandler := http.FileServer(http.Dir("/views/static"))
+	staticHandler := http.FileServer(http.Dir("views/static"))
+	mux.Handle("/static/", http.StripPrefix("/static/", staticHandler))
 
 	mux.HandleFunc("/", noteList)
 	mux.HandleFunc("/note/view", noteView)
