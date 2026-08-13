@@ -69,6 +69,10 @@ func noteCreate(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	config := loadConfig()
+
+	fmt.Println("DBPASSWORD = ", config.DBPassword)
+	fmt.Println("TESTE = ", config.Teste)
+
 	fmt.Printf("Servidor rodando na porta %s", config.ServerPort)
 
 	mux := http.NewServeMux()
