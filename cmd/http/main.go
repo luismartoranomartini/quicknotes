@@ -25,7 +25,7 @@ func main() {
 	slog.Info("Conexão com o banco aconteceu com sucesso")
 	defer dbpool.Close()
 
-	slog.Info(fmt.Sprintf("Servidor rodando na porta %s", config.ServerPort))
+	slog.Info(fmt.Sprintf("Servidor rodando na porta %s\n", config.ServerPort))
 
 	staticHandler := http.FileServer(http.Dir("views/static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", staticHandler))
