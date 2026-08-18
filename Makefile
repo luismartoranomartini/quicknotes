@@ -1,11 +1,11 @@
 server:
-	go run ./cmd/http/
+	@go run ./cmd/http/
 
 dbup:
-	docker compose up -d
+	@docker compose up -d
 
 dbdown:
-	docker compose down 
+	@docker compose down 
 
 migrate-up:
 	@migrate -database "postgres://postgres:secret@localhost/postgres?sslmode=disable" -path db/migrations up 
