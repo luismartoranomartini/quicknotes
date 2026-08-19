@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"quicknotes/internal/handlers"
+	"quicknotes/internal/repositories"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -18,19 +19,27 @@ func main() {
 	slog.SetDefault(newLogger(os.Stderr, config.GetLevelLog()))
 
 	dbpool, err := pgxpool.New(context.Background(), config.DBConnUrl)
-	if err != err {
+	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 	slog.Info("Conexão com o banco aconteceu com sucesso")
 	defer dbpool.Close()
 
-	slog.Info(fmt.Sprintf("Servidor rodando na porta %s\n", config.ServerPort))
+	slog.Info(fmt.Sprintf("Servidor rodando na porta %s", config.ServerPort))
 
 	staticHandler := http.FileServer(http.Dir("views/static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", staticHandler))
 
-	// noteHandler := handlers.NewNoteHandler()
+	noteRepo := repositories.NewNoteRepository(dbpool)
+
+	err = noteRepo.Delete(3)
+
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	fmt.Println("nota deletada com sucesso")
+
 	noteHandler := handlers.NewNoteHandler()
 
 	mux.Handle("/", handlers.HandlerWithError(noteHandler.Notelist))

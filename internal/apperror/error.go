@@ -1,3 +1,4 @@
+// Package apperror - erros personalizados
 package apperror
 
 type StatusError struct {
