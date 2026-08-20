@@ -4,16 +4,20 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"quicknotes/internal/apperror"
-	"text/template"
+	"quicknotes/internal/repositories"
+	"strconv"
 )
 
-type noteHandler struct{}
+type noteHandler struct {
+	repo repositories.NoteRepository
+}
 
-func NewNoteHandler() *noteHandler {
-	return &noteHandler{}
+func NewNoteHandler(repo repositories.NoteRepository) *noteHandler {
+	return &noteHandler{repo: repo}
 }
 
 func (nh *noteHandler) Notelist(w http.ResponseWriter, r *http.Request) error {
@@ -35,13 +39,13 @@ func (nh *noteHandler) Notelist(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (nh *noteHandler) NoteView(w http.ResponseWriter, r *http.Request) error {
-	id := r.URL.Query().Get("id")
-	if id == "" {
+	idParam := r.URL.Query().Get("id")
+	if idParam == "" {
 		return apperror.WithStatus(errors.New("anotação é obrigatória"), http.StatusBadRequest)
 	}
-	if id == "0" {
-		return apperror.WithStatus(errors.New("anotação 0 não encontrada"), http.StatusNotFound)
-		// return handlers.ErrNotFound
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return err
 	}
 	files := []string{
 		"views/templates/base.html",
@@ -51,7 +55,11 @@ func (nh *noteHandler) NoteView(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return errors.New("aconteceu um erro ao executar a página")
 	}
-	return tmpl.ExecuteTemplate(w, "base", id)
+	note, err := nh.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+	return tmpl.ExecuteTemplate(w, "base", note)
 }
 
 func (nh *noteHandler) NoteNew(w http.ResponseWriter, r *http.Request) error {
