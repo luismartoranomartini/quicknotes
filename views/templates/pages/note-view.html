@@ -1,11 +1,6 @@
-{{ define "title"}} Visualização de uma nota {{ .ID.Int }}{{ end }}
-
-{{ define "main" }}
-<h3>{{ .Title.String  }}</h3>
-<p>{{.Content.String}}</p>
-</div>
+{{ define "title"}} Visualização de uma nota {{ .ID }}{{ end }} {{ define "main"
+}}
+<h3>{{ .Title }}</h3>
+<p>{{ .Content }}</p>
 
 {{ end }}
-
-
-

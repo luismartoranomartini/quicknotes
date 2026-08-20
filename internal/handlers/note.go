@@ -2,10 +2,10 @@
 package handlers
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"html/template"
-	"log/slog"
 	"net/http"
 	"quicknotes/internal/apperror"
 	"quicknotes/internal/repositories"
@@ -34,8 +34,11 @@ func (nh *noteHandler) Notelist(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return errors.New("aconteceu um erro")
 	}
-	slog.Info("Executou o handler /")
-	return tmpl.ExecuteTemplate(w, "base", nil)
+	notes, err := nh.repo.List()
+	if err != nil {
+		return err
+	}
+	return tmpl.ExecuteTemplate(w, "base", newNoteResponseFromNoteList(notes))
 }
 
 func (nh *noteHandler) NoteView(w http.ResponseWriter, r *http.Request) error {
@@ -53,13 +56,19 @@ func (nh *noteHandler) NoteView(w http.ResponseWriter, r *http.Request) error {
 	}
 	tmpl, err := template.ParseFiles(files...)
 	if err != nil {
-		return errors.New("aconteceu um erro ao executar a página")
+		return ErrInternal
 	}
 	note, err := nh.repo.GetByID(id)
 	if err != nil {
 		return err
 	}
-	return tmpl.ExecuteTemplate(w, "base", note)
+	buff := &bytes.Buffer{}
+	err = tmpl.ExecuteTemplate(buff, "base", newNoteReponseFromNote(note))
+	if err != nil {
+		return ErrInternal
+	}
+	buff.WriteTo(w)
+	return nil
 }
 
 func (nh *noteHandler) NoteNew(w http.ResponseWriter, r *http.Request) error {

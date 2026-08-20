@@ -24,8 +24,10 @@
       </nav>
     </header>
     <main><div class="wrapper">{{ template "main" . }}</div></main>
-    <script src="/static/js/index.js"></script>
     <footer>
+      <script src="/static/js/jquery.min.js"></script>
+      <script src="/static/js/index.js"></script>
+      {{ block "script" .}} {{end}}
       <div class="wrapper">&copy;2026 by <a href="/">Luís Martini</a>.</div>
     </footer>
   </body>

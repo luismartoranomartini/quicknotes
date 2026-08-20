@@ -1,1 +1,1 @@
-console.log("carreegou o javascript");
+console.log("carregou o javascript global");
