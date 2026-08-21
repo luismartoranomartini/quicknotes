@@ -35,11 +35,12 @@ func main() {
 
 	noteHandler := handlers.NewNoteHandler(noteRepo)
 
-	mux.Handle("/", handlers.HandlerWithError(noteHandler.Notelist))
+	mux.Handle("/", handlers.HandlerWithError(noteHandler.NoteList))
 	mux.Handle("/note/view", handlers.HandlerWithError(noteHandler.NoteView))
 	mux.Handle("/note/new", handlers.HandlerWithError(noteHandler.NoteNew))
-	mux.Handle("/note/create", handlers.HandlerWithError(noteHandler.NoteCreate))
+	mux.Handle("/note/save", handlers.HandlerWithError(noteHandler.NoteSave))
 	mux.Handle("/note/delete", handlers.HandlerWithError(noteHandler.NoteDelete))
+	mux.Handle("/note/edit", handlers.HandlerWithError(noteHandler.NoteEdit))
 
 	err = http.ListenAndServe(fmt.Sprintf(":%s", config.ServerPort), mux)
 	if err != nil {

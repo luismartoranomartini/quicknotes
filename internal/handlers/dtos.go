@@ -20,10 +20,17 @@ type NoteRequest struct {
 	Colors  []string
 }
 
-func newNoteRequest() (req NoteRequest) {
-	req.Color = "color5"
+func newNoteRequest(note *models.Note) (req NoteRequest) {
 	for i := 1; i <= 9; i++ {
 		req.Colors = append(req.Colors, fmt.Sprintf("color%d", i))
+	}
+	if note != nil {
+		req.ID = int(note.ID.Int.Int64())
+		req.Title = note.Title.String
+		req.Color = note.Color.String
+		req.Content = note.Content.String
+	} else {
+		req.Color = "color5"
 	}
 	return
 }
