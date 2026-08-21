@@ -1,4 +1,39 @@
 {{ define "title" }} Nova anotação {{ end }} {{ define "main" }}
 <h1>Nova anotação</h1>
-<p>Formulário de Criação</p>
-{{ end }}
+
+<form action="/note/create" method="post">
+  <label for="title">Título</label>
+  <input id="title" type="text" name="title" />
+
+  <label for="content">Conteúdo</label>
+  <textarea name="content" id="content" rows="20" cols="10"></textarea>
+
+  <label for="color">Cor do Cartão</label>
+  <input id="color" type="hidden" name="color" value="{{.Color}}" />
+  <div class="color-picker">
+    {{$color := .Color }} {{ range .Colors }}
+    <div
+      data-color="{{.}}"
+      class="color {{.}} {{if eq . $color}}active{{end}} "
+    ></div>
+    {{end}}
+  </div>
+
+  <button class="success" type="submit">Salvar</button>
+  <button class="neutral" type="button">Cancelar</button>
+</form>
+
+{{ end }} {{define "script"}}
+<script>
+  $(".color").click(function () {
+    $(".color").removeClass("active");
+    $(this).addClass("active");
+    $("#color").val($(this).data("color"));
+    // alert("Clicou na cor: " + $(this).data("color"));
+
+    $("button.neutral").click(function () {
+      window.location.href = "/";
+    });
+  });
+</script>
+{{end}}

@@ -39,6 +39,7 @@ func main() {
 	mux.Handle("/note/view", handlers.HandlerWithError(noteHandler.NoteView))
 	mux.Handle("/note/new", handlers.HandlerWithError(noteHandler.NoteNew))
 	mux.Handle("/note/create", handlers.HandlerWithError(noteHandler.NoteCreate))
+	mux.Handle("/note/delete", handlers.HandlerWithError(noteHandler.NoteDelete))
 
 	err = http.ListenAndServe(fmt.Sprintf(":%s", config.ServerPort), mux)
 	if err != nil {

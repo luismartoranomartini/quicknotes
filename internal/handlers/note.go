@@ -34,7 +34,7 @@ func (nh *noteHandler) Notelist(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return errors.New("aconteceu um erro")
 	}
-	notes, err := nh.repo.List()
+	notes, err := nh.repo.List(r.Context())
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,8 @@ func (nh *noteHandler) NoteView(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return ErrInternal
 	}
-	note, err := nh.repo.GetByID(id)
+
+	note, err := nh.repo.GetByID(r.Context(), id)
 	if err != nil {
 		return err
 	}
@@ -80,7 +81,7 @@ func (nh *noteHandler) NoteNew(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return errors.New("aconteceu um erro")
 	}
-	return tmpl.ExecuteTemplate(w, "base", nil)
+	return tmpl.ExecuteTemplate(w, "base", newNoteRequest())
 }
 
 func (nh *noteHandler) NoteCreate(w http.ResponseWriter, r *http.Request) error {
@@ -89,6 +90,42 @@ func (nh *noteHandler) NoteCreate(w http.ResponseWriter, r *http.Request) error 
 
 		return errors.New("aconteceu um erro")
 	}
-	fmt.Fprint(w, "Criando uma nova nota")
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+	color := r.PostForm.Get("color")
+	// title1 := r.PostFormValue("title")
+
+	note, err := nh.repo.Create(r.Context(), title, content, color)
+	if err != nil {
+		return err
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/note/view?id=%d", note.ID.Int), http.StatusSeeOther)
+
+	return nil
+}
+
+func (nh *noteHandler) NoteDelete(w http.ResponseWriter, r *http.Request) error {
+	if r.Method != http.MethodDelete {
+		w.Header().Set("Allow", http.MethodPost)
+
+		return errors.New("aconteceu um erro")
+	}
+	idParam := r.URL.Query().Get("id")
+	if idParam == "" {
+		return apperror.WithStatus(errors.New("anotação é obrigatória"), http.StatusBadRequest)
+	}
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return err
+	}
+	err = nh.repo.Delete(r.Context(), id)
+	if err != nil {
+		return err
+	}
 	return nil
 }
