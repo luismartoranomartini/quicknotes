@@ -73,7 +73,7 @@ func (nh *noteHandler) NoteSave(w http.ResponseWriter, r *http.Request) error {
 	if id > 0 {
 		note, err = nh.repo.Update(r.Context(), id, title, content, color)
 	} else {
-		note, err = nh.repo.Update(r.Context(), id, title, content, color)
+		note, err = nh.repo.Create(r.Context(), title, content, color)
 	}
 
 	if err != nil {
