@@ -9,6 +9,7 @@ import (
 	"quicknotes/internal/models"
 	"quicknotes/internal/repositories"
 	"strconv"
+	"strings"
 )
 
 type noteHandler struct {
@@ -67,7 +68,26 @@ func (nh *noteHandler) NoteSave(w http.ResponseWriter, r *http.Request) error {
 	title := r.PostForm.Get("title")
 	content := r.PostForm.Get("content")
 	color := r.PostForm.Get("color")
-	// title1 := r.PostFormValue("title")
+	// title1 := r.PostFormValue("title") -> outra forma de fazer
+
+	data := newNoteRequest(nil)
+	data.ID = id
+	data.Title = title
+	data.Content = content
+	data.Color = color
+
+	if strings.TrimSpace(content) == "" {
+		data.AddFieldError("content", "Conteúdo é obrigatório")
+	}
+
+	if !data.Valid() {
+		if id > 0 {
+			render(w, http.StatusUnprocessableEntity, "note-edit.html", data)
+		} else {
+			render(w, http.StatusUnprocessableEntity, "note-new.html", data)
+		}
+		return nil
+	}
 
 	var note *models.Note
 	if id > 0 {

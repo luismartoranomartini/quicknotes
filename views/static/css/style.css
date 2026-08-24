@@ -213,6 +213,7 @@
   form .errors > * {
     color: var(--danger);
     list-style-position: inside;
+    list-style-type: none;
   }
 
   input[type="text"],

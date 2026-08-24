@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"quicknotes/internal/models"
+	"quicknotes/internal/validations"
 )
 
 type NoteResponse struct {
@@ -18,6 +19,7 @@ type NoteRequest struct {
 	Content string
 	Color   string
 	Colors  []string
+	validations.FormValidator
 }
 
 func newNoteRequest(note *models.Note) (req NoteRequest) {
