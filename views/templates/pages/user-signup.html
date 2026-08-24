@@ -1,0 +1,28 @@
+{{ define "title" }} Novo Cadastro {{ end }} {{ define "main" }}
+<form class="user-form" action="/user/signup" method="post">
+  <h1>Cadastrar-se</h1>
+  <label for="email">Email</label>
+  <input type="text" name="email" id="email" />
+  {{with .FieldErrors}}
+  <ul class="errors">
+    {{range .}}
+    <li>{{ . }}</li>
+    {{end}}
+  </ul>
+  {{end}} <label for="password">Senha</label>
+  <input type="password" name="password" id="password" />
+  <input type="checkbox" /><span>Mostrar senha</span>
+  <button class="sucess" type="submit">Cadastrar</button>
+  <p>Já é cadastrado? <a href="/user/signup">Faça o Login</a></p>
+</form>
+{{end}} {{define "script"}}
+<script>
+  $(":checkbox").click(function () {
+    if ($(this).is(":checked")) {
+      $("#password").attr("type", "text");
+    } else {
+      $("#password").attr("type", "password");
+    }
+  });
+</script>
+{{end}}

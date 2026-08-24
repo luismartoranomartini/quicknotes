@@ -1,7 +1,7 @@
 {{ define "title" }} Nova anotação {{ end }} {{ define "main" }}
 <h1>Nova anotação</h1>
 
-<form action="/note/save" method="post">
+<form action="/note" method="post">
   {{with .FieldErrors}}
   <ul class="errors">
     {{range .}}

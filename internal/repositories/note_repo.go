@@ -68,7 +68,7 @@ func (nr *noteRepository) Create(ctx context.Context, title, content, color stri
 	RETURNING id, created_at;`
 	row := nr.db.QueryRow(ctx, query, note.Title, note.Content, note.Color)
 	if err := row.Scan(&note.ID, &note.CreatedAt); err != nil {
-		return &note, err
+		return &note, newRepositoryError(err)
 	}
 	return &note, nil
 }

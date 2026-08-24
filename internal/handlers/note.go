@@ -2,10 +2,8 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
-	"quicknotes/internal/apperror"
 	"quicknotes/internal/models"
 	"quicknotes/internal/repositories"
 	"strconv"
@@ -34,10 +32,7 @@ func (nh *noteHandler) NoteList(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (nh *noteHandler) NoteView(w http.ResponseWriter, r *http.Request) error {
-	idParam := r.URL.Query().Get("id")
-	if idParam == "" {
-		return apperror.WithStatus(errors.New("anotação é obrigatória"), http.StatusBadRequest)
-	}
+	idParam := r.PathValue("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		return err
@@ -54,11 +49,6 @@ func (nh *noteHandler) NoteNew(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (nh *noteHandler) NoteSave(w http.ResponseWriter, r *http.Request) error {
-	if r.Method != http.MethodPost {
-		w.Header().Set("Allow", http.MethodPost)
-
-		return errors.New("aconteceu um erro")
-	}
 	err := r.ParseForm()
 	if err != nil {
 		return err
@@ -99,20 +89,12 @@ func (nh *noteHandler) NoteSave(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	http.Redirect(w, r, fmt.Sprintf("/note/view?id=%d", note.ID.Int), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/note/%d", note.ID.Int), http.StatusSeeOther)
 	return nil
 }
 
 func (nh *noteHandler) NoteDelete(w http.ResponseWriter, r *http.Request) error {
-	if r.Method != http.MethodDelete {
-		w.Header().Set("Allow", http.MethodPost)
-
-		return errors.New("aconteceu um erro")
-	}
-	idParam := r.URL.Query().Get("id")
-	if idParam == "" {
-		return apperror.WithStatus(errors.New("anotação é obrigatória"), http.StatusBadRequest)
-	}
+	idParam := r.PathValue("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		return err
@@ -125,10 +107,7 @@ func (nh *noteHandler) NoteDelete(w http.ResponseWriter, r *http.Request) error 
 }
 
 func (nh *noteHandler) NoteEdit(w http.ResponseWriter, r *http.Request) error {
-	idParam := r.URL.Query().Get("id")
-	if idParam == "" {
-		return apperror.WithStatus(errors.New("anotação é obrigatória"), http.StatusBadRequest)
-	}
+	idParam := r.PathValue("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		return err
