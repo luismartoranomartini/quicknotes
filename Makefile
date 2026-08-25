@@ -17,4 +17,4 @@ postgres:
 	@docker compose exec db psql -U postgres
 
 
-.PHONY: server exp dbup dbdown 
+.PHONY: server dbup dbdown 

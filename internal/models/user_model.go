@@ -10,3 +10,12 @@ type User struct {
 	CreatedAt pgtype.Date
 	UpdatedAt pgtype.Date
 }
+
+type UserConfirmationToken struct {
+	ID        pgtype.Numeric
+	UserID    pgtype.Numeric
+	Token     pgtype.Text
+	Confirmed pgtype.Bool
+	CreatedAt pgtype.Date
+	UpdatedAt pgtype.Date
+}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"quicknotes/internal/repositories"
+	"quicknotes/utils"
 	"regexp"
 	"strings"
 )
@@ -47,7 +48,14 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 		return render(w, http.StatusUnprocessableEntity, "user-signup.html", data)
 	}
 
-	user, err := uh.repo.Create(r.Context(), data.Email, data.Password)
+	hash, err := utils.HashPassword(data.Password)
+	if err != nil {
+		return err
+	}
+
+	hasToken := utils.GenerateTokenKey()
+
+	user, token, err := uh.repo.Create(r.Context(), data.Email, hash, hasToken)
 	if err == repositories.ErrDuplicateEmail {
 		data.AddFieldError("email", "Email já existe")
 		return render(w, http.StatusUnprocessableEntity, "user-signup.html", data)
@@ -57,7 +65,17 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 	}
 	fmt.Println("Usuário criado:", user.ID)
 
-	return render(w, http.StatusOK, "user-signup-success.html", nil)
+	return render(w, http.StatusOK, "user-signup-success.html", token)
+}
+
+func (uh *userHandler) Confirm(w http.ResponseWriter, r *http.Request) error {
+	token := r.PathValue("token")
+	err := uh.repo.ConfirmUserByToken(r.Context(), token)
+	msg := "Seu cadastro foi confirmado. Pode fazer o login"
+	if err != nil {
+		msg = "Esse cadastro já foi confirmado ou o token é inválido"
+	}
+	return render(w, http.StatusOK, "user-confirm.html", msg)
 }
 
 func isEmailValid(e string) bool {
