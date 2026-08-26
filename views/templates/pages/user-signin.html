@@ -1,6 +1,6 @@
-{{ define "title" }} Novo Cadastro {{ end }} {{ define "main" }}
-<form class="user-form" action="/user/signup" method="post">
-  <h1>Cadastrar-se</h1>
+{{ define "title" }} Fazer login {{ end }} {{ define "main" }}
+<form class="user-form" action="/user/signin" method="post">
+  <h1>Entrar no sistema</h1>
   <label for="email">Email</label>
   <input type="text" name="email" id="email" />
   {{with .FieldErrors}}
@@ -13,7 +13,9 @@
   <input type="password" name="password" id="password" />
   <input type="checkbox" /><span>Mostrar senha</span>
   <button class="sucess" type="submit">Cadastrar</button>
-  <p>Já é cadastrado? <a href="/user/signin">Faça o Login</a></p>
+  <p>
+    Ainda não tem cadastrado? <a href="/user/signup">Faça o seu cadastro</a>
+  </p>
 </form>
 {{end}} {{define "script"}}
 <script>

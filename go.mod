@@ -1,4 +1,4 @@
-module github.com/luismartoranomartini/quicknotes
+module quicknotes
 
 go 1.27
 

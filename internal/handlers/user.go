@@ -17,6 +17,69 @@ func NewUserHandler(repo repositories.UserRepository) *userHandler {
 	return &userHandler{repo: repo}
 }
 
+func (uh *userHandler) SigninForm(w http.ResponseWriter, r *http.Request) error {
+	return render(w, http.StatusOK, "user-signin.html", nil)
+}
+
+func (uh *userHandler) Signin(w http.ResponseWriter, r *http.Request) error {
+
+	err := r.ParseForm()
+	if err != nil {
+		return err
+
+	}
+
+	email := r.PostFormValue("email")
+	password := r.PostFormValue("password")
+	data := newUserRequest(email, password)
+
+	if strings.TrimSpace(data.Password) == "" {
+		data.AddFieldError("password", "Senha é obrigatória")
+
+	}
+	if !isEmailValid(data.Email) {
+		data.AddFieldError("email", "Email é inválido")
+	}
+
+	if !data.Valid() {
+		return render(w, http.StatusUnprocessableEntity, "user-signin.html", data)
+	}
+
+	// Consultar o usuário pelo email
+	user, err := uh.repo.FindByEmail(r.Context(), data.Email)
+	if err != nil {
+		data.AddFieldError("validation", "credenciais inválidas")
+		return render(w, http.StatusUnprocessableEntity, "user-signin.html", data)
+	}
+
+	//verificar se usuário está ativo
+	if !user.Active.Bool {
+		data.AddFieldError("validation", "usuário não confirmou o cadastro")
+		return render(w, http.StatusUnprocessableEntity, "user-signin.html", data)
+	}
+
+	// Validação da senha
+
+	if !utils.ValidatePassword(data.Password, user.Password.String) {
+		data.AddFieldError("validation", "credenciais inválidas")
+		return render(w, http.StatusUnprocessableEntity, "user-signin.html", data)
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+	return nil
+
+}
+
+func (uh *userHandler) Confirm(w http.ResponseWriter, r *http.Request) error {
+	token := r.PathValue("token")
+	err := uh.repo.ConfirmUserByToken(r.Context(), token)
+	msg := "Seu cadastro foi confirmado. Pode fazer o login"
+	if err != nil {
+		msg = "Esse cadastro já foi confirmado ou o token é inválido"
+	}
+	return render(w, http.StatusOK, "user-confirm.html", msg)
+}
+
 func (uh *userHandler) SignupForm(w http.ResponseWriter, r *http.Request) error {
 	return render(w, http.StatusOK, "user-signup.html", nil)
 }
@@ -66,16 +129,6 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 	fmt.Println("Usuário criado:", user.ID)
 
 	return render(w, http.StatusOK, "user-signup-success.html", token)
-}
-
-func (uh *userHandler) Confirm(w http.ResponseWriter, r *http.Request) error {
-	token := r.PathValue("token")
-	err := uh.repo.ConfirmUserByToken(r.Context(), token)
-	msg := "Seu cadastro foi confirmado. Pode fazer o login"
-	if err != nil {
-		msg = "Esse cadastro já foi confirmado ou o token é inválido"
-	}
-	return render(w, http.StatusOK, "user-confirm.html", msg)
 }
 
 func isEmailValid(e string) bool {
