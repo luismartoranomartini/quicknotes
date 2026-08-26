@@ -17,6 +17,16 @@ func NewUserHandler(repo repositories.UserRepository) *userHandler {
 	return &userHandler{repo: repo}
 }
 
+func (uh *userHandler) Me(w http.ResponseWriter, r *http.Request) error {
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		http.Redirect(w, r, "/user/signin", http.StatusTemporaryRedirect)
+		return nil
+	}
+	fmt.Fprintf(w, "Email: %s", cookie.Value)
+	return nil
+}
+
 func (uh *userHandler) SigninForm(w http.ResponseWriter, r *http.Request) error {
 	return render(w, http.StatusOK, "user-signin.html", nil)
 }
@@ -59,11 +69,18 @@ func (uh *userHandler) Signin(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// Validação da senha
-
 	if !utils.ValidatePassword(data.Password, user.Password.String) {
 		data.AddFieldError("validation", "credenciais inválidas")
 		return render(w, http.StatusUnprocessableEntity, "user-signin.html", data)
 	}
+
+	// Coookie
+	session := http.Cookie{
+		Name:  "session",
+		Value: user.Email.String,
+		Path:  "/",
+	}
+	http.SetCookie(w, &session)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return nil
