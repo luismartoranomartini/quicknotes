@@ -76,15 +76,16 @@ func (uh *userHandler) Signin(w http.ResponseWriter, r *http.Request) error {
 
 	// Coookie
 	session := http.Cookie{
-		Name:  "session",
-		Value: user.Email.String,
-		Path:  "/",
+		Name:     "session",
+		Value:    user.Email.String,
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(w, &session)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return nil
-
 }
 
 func (uh *userHandler) Confirm(w http.ResponseWriter, r *http.Request) error {

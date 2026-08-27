@@ -8,6 +8,8 @@ import (
 	"quicknotes/internal/repositories"
 	"strconv"
 	"strings"
+
+	"github.com/gorilla/csrf"
 )
 
 type noteHandler struct {
@@ -45,14 +47,22 @@ func (nh *noteHandler) NoteView(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (nh *noteHandler) NoteNew(w http.ResponseWriter, r *http.Request) error {
-	return render(w, http.StatusOK, "note-new.html", newNoteRequest(nil))
+	data := newNoteRequest(nil)
+	data.CSRFField = csrf.TemplateField(r)
+	return render(w, http.StatusOK, "note-new.html", data)
 }
 
 func (nh *noteHandler) NoteSave(w http.ResponseWriter, r *http.Request) error {
+	// _, err := r.Cookie("session")
+	// if err != nil {
+	// 	http.Redirect(w, r, "/user/signin", http.StatusTemporaryRedirect)
+	// }
+
 	err := r.ParseForm()
 	if err != nil {
 		return err
 	}
+	fmt.Println(r.PostForm.Get("gorilla.csrf.Token"))
 	idParam := r.PostForm.Get("id")
 	id, _ := strconv.Atoi(idParam)
 	title := r.PostForm.Get("title")

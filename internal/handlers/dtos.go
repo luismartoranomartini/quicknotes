@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
 	"quicknotes/internal/models"
 	"quicknotes/internal/validations"
 )
@@ -14,11 +15,12 @@ type NoteResponse struct {
 }
 
 type NoteRequest struct {
-	ID      int
-	Title   string
-	Content string
-	Color   string
-	Colors  []string
+	ID        int
+	Title     string
+	Content   string
+	Color     string
+	Colors    []string
+	CSRFField template.HTML
 	validations.FormValidator
 }
 
