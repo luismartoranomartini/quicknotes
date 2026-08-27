@@ -9,7 +9,7 @@
     <p class="title">{{.Title}}</p>
     <div class="content">{{.Content}}</div>
     <div class="footer">
-      <a data-noteid="{{.ID}}" href="#">Deletar</a>
+      <a class="hidden" data-noteid="{{.ID}}" href="#">Deletar</a>
     </div>
   </div>
   {{end}}
@@ -27,6 +27,9 @@
       $.ajax({
         url: "note/" + $(this).data("noteid"),
         type: "DELETE",
+          headers: {
+              "X-CSRF-Token": {{csrfToken}}
+          },
         success: function () {
           window.location.href = "/";
         },

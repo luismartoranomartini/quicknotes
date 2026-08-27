@@ -4,14 +4,24 @@ import (
 	"bytes"
 	"html/template"
 	"net/http"
+
+	"github.com/gorilla/csrf"
 )
 
-func render(w http.ResponseWriter, status int, page string, data any) error {
+func render(w http.ResponseWriter, r *http.Request, status int, page string, data any) error {
 	files := []string{
 		"views/templates/base.html",
 	}
 	files = append(files, "views/templates/pages/"+page)
-	tmpl, err := template.ParseFiles(files...)
+	tmpl := template.New("").Funcs(template.FuncMap{
+		"csrfField": func() template.HTML {
+			return csrf.TemplateField(r)
+		},
+		"csrfToken": func() string {
+			return csrf.Token(r)
+		},
+	})
+	tmpl, err := tmpl.ParseFiles(files...)
 	if err != nil {
 		return err
 	}

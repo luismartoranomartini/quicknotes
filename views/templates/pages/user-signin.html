@@ -9,7 +9,8 @@
     <li>{{ . }}</li>
     {{end}}
   </ul>
-  {{end}} <label for="password">Senha</label>
+  {{end}} {{csrfField}}
+  <label for="password">Senha</label>
   <input type="password" name="password" id="password" />
   <input type="checkbox" /><span>Mostrar senha</span>
   <button class="success" type="submit">Entrar</button>
