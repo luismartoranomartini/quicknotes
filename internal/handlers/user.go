@@ -7,14 +7,18 @@ import (
 	"quicknotes/utils"
 	"regexp"
 	"strings"
+
+	"github.com/alexedwards/scs/v2"
 )
 
 type userHandler struct {
-	repo repositories.UserRepository
+	session *scs.SessionManager
+	repo    repositories.UserRepository
 }
 
-func NewUserHandler(repo repositories.UserRepository) *userHandler {
-	return &userHandler{repo: repo}
+// NewUserHandler -> função de construção
+func NewUserHandler(session *scs.SessionManager, repo repositories.UserRepository) *userHandler {
+	return &userHandler{session: session, repo: repo}
 }
 
 func (uh *userHandler) Me(w http.ResponseWriter, r *http.Request) error {
@@ -28,6 +32,8 @@ func (uh *userHandler) Me(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (uh *userHandler) SigninForm(w http.ResponseWriter, r *http.Request) error {
+	userID := uh.session.GetInt64(r.Context(), "userID")
+	fmt.Println("USER ID:", userID)
 	return render(w, r, http.StatusOK, "user-signin.html", nil)
 }
 
@@ -73,16 +79,9 @@ func (uh *userHandler) Signin(w http.ResponseWriter, r *http.Request) error {
 		data.AddFieldError("validation", "credenciais inválidas")
 		return render(w, r, http.StatusUnprocessableEntity, "user-signin.html", data)
 	}
-
-	// Coookie
-	session := http.Cookie{
-		Name:     "session",
-		Value:    user.Email.String,
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	}
-	http.SetCookie(w, &session)
+	// objeto de sessão
+	// armazena o ID na sessão
+	uh.session.Put(r.Context(), "userID", user.ID.Int.Int64())
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return nil

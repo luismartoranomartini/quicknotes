@@ -41,7 +41,7 @@ func main() {
 	userRepo := repositories.NewUserRepository(dbpool)
 
 	noteHandler := handlers.NewNoteHandler(noteRepo)
-	userHandler := handlers.NewUserHandler(userRepo)
+	userHandler := handlers.NewUserHandler(sesseionManager, userRepo)
 
 	mux.Handle("/", handlers.HandlerWithError(noteHandler.NoteList))
 	mux.Handle("GET /note/{id}", handlers.HandlerWithError(noteHandler.NoteView))
