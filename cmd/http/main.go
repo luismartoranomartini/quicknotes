@@ -8,15 +8,15 @@ import (
 	"os"
 	"quicknotes/internal/handlers"
 	"quicknotes/internal/repositories"
+	"time"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/gorilla/csrf"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
 	config := loadConfig()
-	mux := http.NewServeMux()
-
 	slog.SetDefault(newLogger(os.Stderr, config.GetLevelLog()))
 
 	dbpool, err := pgxpool.New(context.Background(), config.DBConnURL)
@@ -26,6 +26,11 @@ func main() {
 	}
 	slog.Info("Conexão com o banco aconteceu com sucesso")
 	defer dbpool.Close()
+
+	mux := http.NewServeMux()
+
+	sesseionManager := scs.New()
+	sesseionManager.Lifetime = time.Hour
 
 	slog.Info(fmt.Sprintf("Servidor rodando na porta %s", config.ServerPort))
 
@@ -58,7 +63,7 @@ func main() {
 
 	csrfMiddleware := csrf.Protect([]byte("32-byte-long-auth-key"))
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", config.ServerPort), csrfMiddleware(mux)); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", config.ServerPort), sesseionManager.LoadAndSave(csrfMiddleware(mux))); err != nil {
 		panic(err)
 	}
 }
