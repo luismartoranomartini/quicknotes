@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"quicknotes/internal/models"
+	render "quicknotes/internal/render"
 	"quicknotes/internal/repositories"
 	"strconv"
 	"strings"
@@ -13,24 +14,20 @@ import (
 )
 
 type noteHandler struct {
-	repo repositories.NoteRepository
+	render *render.RenderTenplate
+	repo   repositories.NoteRepository
 }
 
-func NewNoteHandler(repo repositories.NoteRepository) *noteHandler {
-	return &noteHandler{repo: repo}
+func NewNoteHandler(render *render.RenderTenplate, repo repositories.NoteRepository) *noteHandler {
+	return &noteHandler{render: render, repo: repo}
 }
 
 func (nh *noteHandler) NoteList(w http.ResponseWriter, r *http.Request) error {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return ErrNotFound
-	}
-
 	notes, err := nh.repo.List(r.Context())
 	if err != nil {
 		return err
 	}
-	return render(w, r, http.StatusOK, "home.html", newNoteResponseFromNoteList(notes))
+	return nh.render.RenderPage(w, r, http.StatusOK, "note-home.html", newNoteResponseFromNoteList(notes))
 }
 
 func (nh *noteHandler) NoteView(w http.ResponseWriter, r *http.Request) error {
@@ -43,13 +40,13 @@ func (nh *noteHandler) NoteView(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return render(w, r, http.StatusOK, "note-view.html", newNoteReponseFromNote(note))
+	return nh.render.RenderPage(w, r, http.StatusOK, "note-view.html", newNoteReponseFromNote(note))
 }
 
 func (nh *noteHandler) NoteNew(w http.ResponseWriter, r *http.Request) error {
 	data := newNoteRequest(nil)
 	data.CSRFField = csrf.TemplateField(r)
-	return render(w, r, http.StatusOK, "note-new.html", data)
+	return nh.render.RenderPage(w, r, http.StatusOK, "note-new.html", data)
 }
 
 func (nh *noteHandler) NoteSave(w http.ResponseWriter, r *http.Request) error {
@@ -57,7 +54,6 @@ func (nh *noteHandler) NoteSave(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(r.PostForm.Get("gorilla.csrf.Token"))
 	idParam := r.PostForm.Get("id")
 	id, _ := strconv.Atoi(idParam)
 	title := r.PostForm.Get("title")
@@ -77,9 +73,9 @@ func (nh *noteHandler) NoteSave(w http.ResponseWriter, r *http.Request) error {
 
 	if !data.Valid() {
 		if id > 0 {
-			render(w, r, http.StatusUnprocessableEntity, "note-edit.html", data)
+			nh.render.RenderPage(w, r, http.StatusUnprocessableEntity, "note-edit.html", data)
 		} else {
-			render(w, r, http.StatusUnprocessableEntity, "note-new.html", data)
+			nh.render.RenderPage(w, r, http.StatusUnprocessableEntity, "note-new.html", data)
 		}
 		return nil
 	}
@@ -122,5 +118,5 @@ func (nh *noteHandler) NoteEdit(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return render(w, r, http.StatusOK, "note-edit.html", newNoteRequest(note))
+	return nh.render.RenderPage(w, r, http.StatusOK, "note-edit.html", newNoteRequest(note))
 }

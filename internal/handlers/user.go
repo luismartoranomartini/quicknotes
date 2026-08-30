@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	render "quicknotes/internal/render"
 	"quicknotes/internal/repositories"
 	"quicknotes/utils"
 	"regexp"
@@ -12,29 +13,26 @@ import (
 )
 
 type userHandler struct {
+	render  *render.RenderTenplate
 	session *scs.SessionManager
 	repo    repositories.UserRepository
 }
 
 // NewUserHandler -> função de construção
-func NewUserHandler(session *scs.SessionManager, repo repositories.UserRepository) *userHandler {
-	return &userHandler{session: session, repo: repo}
+func NewUserHandler(render *render.RenderTenplate, session *scs.SessionManager, repo repositories.UserRepository) *userHandler {
+	return &userHandler{render: render, session: session, repo: repo}
 }
 
 func (uh *userHandler) Me(w http.ResponseWriter, r *http.Request) error {
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Redirect(w, r, "/user/signin", http.StatusTemporaryRedirect)
-		return nil
-	}
-	fmt.Fprintf(w, "Email: %s", cookie.Value)
+
+	fmt.Fprintf(w, "Dados do usuário")
 	return nil
 }
 
 func (uh *userHandler) SigninForm(w http.ResponseWriter, r *http.Request) error {
 	userID := uh.session.GetInt64(r.Context(), "userID")
 	fmt.Println("USER ID:", userID)
-	return render(w, r, http.StatusOK, "user-signin.html", nil)
+	return uh.render.RenderPage(w, r, http.StatusOK, "user-signin.html", nil)
 }
 
 func (uh *userHandler) Signin(w http.ResponseWriter, r *http.Request) error {
@@ -58,32 +56,32 @@ func (uh *userHandler) Signin(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if !data.Valid() {
-		return render(w, r, http.StatusUnprocessableEntity, "user-signin.html", data)
+		return uh.render.RenderPage(w, r, http.StatusUnprocessableEntity, "user-signin.html", data)
 	}
 
 	// Consultar o usuário pelo email
 	user, err := uh.repo.FindByEmail(r.Context(), data.Email)
 	if err != nil {
 		data.AddFieldError("validation", "credenciais inválidas")
-		return render(w, r, http.StatusUnprocessableEntity, "user-signin.html", data)
+		return uh.render.RenderPage(w, r, http.StatusUnprocessableEntity, "user-signin.html", data)
 	}
 
 	//verificar se usuário está ativo
 	if !user.Active.Bool {
 		data.AddFieldError("validation", "usuário não confirmou o cadastro")
-		return render(w, r, http.StatusUnprocessableEntity, "user-signin.html", data)
+		return uh.render.RenderPage(w, r, http.StatusUnprocessableEntity, "user-signin.html", data)
 	}
 
 	// Validação da senha
 	if !utils.ValidatePassword(data.Password, user.Password.String) {
 		data.AddFieldError("validation", "credenciais inválidas")
-		return render(w, r, http.StatusUnprocessableEntity, "user-signin.html", data)
+		return uh.render.RenderPage(w, r, http.StatusUnprocessableEntity, "user-signin.html", data)
 	}
 	// objeto de sessão
 	// armazena o ID na sessão
 	uh.session.Put(r.Context(), "userID", user.ID.Int.Int64())
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/note", http.StatusSeeOther)
 	return nil
 }
 
@@ -94,11 +92,11 @@ func (uh *userHandler) Confirm(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		msg = "Esse cadastro já foi confirmado ou o token é inválido"
 	}
-	return render(w, r, http.StatusOK, "user-confirm.html", msg)
+	return uh.render.RenderPage(w, r, http.StatusOK, "user-confirm.html", msg)
 }
 
 func (uh *userHandler) SignupForm(w http.ResponseWriter, r *http.Request) error {
-	return render(w, r, http.StatusOK, "user-signup.html", nil)
+	return uh.render.RenderPage(w, r, http.StatusOK, "user-signup.html", nil)
 }
 
 func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
@@ -125,7 +123,7 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if !data.Valid() {
-		return render(w, r, http.StatusUnprocessableEntity, "user-signup.html", data)
+		return uh.render.RenderPage(w, r, http.StatusUnprocessableEntity, "user-signup.html", data)
 	}
 
 	hash, err := utils.HashPassword(data.Password)
@@ -138,14 +136,14 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 	user, token, err := uh.repo.Create(r.Context(), data.Email, hash, hasToken)
 	if err == repositories.ErrDuplicateEmail {
 		data.AddFieldError("email", "Email já existe")
-		return render(w, r, http.StatusUnprocessableEntity, "user-signup.html", data)
+		return uh.render.RenderPage(w, r, http.StatusUnprocessableEntity, "user-signup.html", data)
 	}
 	if err != nil {
 		return err
 	}
 	fmt.Println("Usuário criado:", user.ID)
 
-	return render(w, r, http.StatusOK, "user-signup-success.html", token)
+	return uh.render.RenderPage(w, r, http.StatusOK, "user-signup-success.html", token)
 }
 
 func isEmailValid(e string) bool {

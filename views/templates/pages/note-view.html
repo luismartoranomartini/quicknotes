@@ -17,9 +17,9 @@
       $.ajax({
         url: "/note/" + $(this).data("noteid"),
         type: "DELETE",
-          headers: {
-              "X-CSRF-Token": {{csrfToken}}
-          },
+        headers: {
+          "X-CSRF-Token": "{{csrfToken}}",
+        },
         success: function () {
           window.location.href = "/";
         },

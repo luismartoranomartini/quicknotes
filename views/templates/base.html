@@ -21,12 +21,14 @@
       </div>
       <nav>
         <div class="wrapper">
-          <a href="/">Home</a>
+          <a href="/note">Home</a>
           <a href="/note/new">Adicionar Anotação</a>
+          {{ if not isAuthenticated }}
           <div class="right">
             <a href="/user/signup">Cadastrar-se</a>
             <a href="/user/signin">Fazer login</a>
           </div>
+          {{ end }}
         </div>
       </nav>
     </header>
