@@ -10,6 +10,7 @@ import (
 	"quicknotes/internal/repositories"
 	"time"
 
+	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/gorilla/csrf"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -31,6 +32,9 @@ func main() {
 
 	sesseionManager := scs.New()
 	sesseionManager.Lifetime = time.Hour
+	sesseionManager.Store = pgxstore.New(dbpool)
+	//Limpa as sessões expiradas da tabbela
+	pgxstore.NewWithCleanupInterval(dbpool, 30*time.Minute)
 
 	slog.Info(fmt.Sprintf("Servidor rodando na porta %s", config.ServerPort))
 
