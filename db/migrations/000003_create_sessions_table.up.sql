@@ -1,7 +1,7 @@
 create table sessions (
-	token text primary key,
-	data bytea not null,
-	expiry timestamptz not null
+	token TEXT PRIMARY KEY,
+	data BYTEA not null,
+	expiry TIMESTAMPTZ NOT NULL
 );
 
 create index sessions_expiry_idx on sessions (expiry);

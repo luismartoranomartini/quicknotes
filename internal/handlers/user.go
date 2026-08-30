@@ -77,9 +77,16 @@ func (uh *userHandler) Signin(w http.ResponseWriter, r *http.Request) error {
 		data.AddFieldError("validation", "credenciais inválidas")
 		return uh.render.RenderPage(w, r, http.StatusUnprocessableEntity, "user-signin.html", data)
 	}
+	//Renew Token
+	err = uh.session.RenewToken(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return err
+	}
 	// objeto de sessão
 	// armazena o ID na sessão
 	uh.session.Put(r.Context(), "userID", user.ID.Int.Int64())
+	uh.session.Put(r.Context(), "userEmail", user.Email.String)
 
 	http.Redirect(w, r, "/note", http.StatusSeeOther)
 	return nil
@@ -144,6 +151,17 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 	fmt.Println("Usuário criado:", user.ID)
 
 	return uh.render.RenderPage(w, r, http.StatusOK, "user-signup-success.html", token)
+}
+func (uh *userHandler) Signout(w http.ResponseWriter, r *http.Request) error {
+	//Renew Token
+	err := uh.session.RenewToken(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return err
+	}
+	uh.session.Remove(r.Context(), "userID")
+	http.Redirect(w, r, "/user/signin", http.StatusSeeOther)
+	return nil
 }
 
 func isEmailValid(e string) bool {

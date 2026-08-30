@@ -10,20 +10,26 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/gorilla/csrf"
 )
 
 type noteHandler struct {
-	render *render.RenderTenplate
-	repo   repositories.NoteRepository
+	render  *render.RenderTenplate
+	session *scs.SessionManager
+	repo    repositories.NoteRepository
 }
 
-func NewNoteHandler(render *render.RenderTenplate, repo repositories.NoteRepository) *noteHandler {
-	return &noteHandler{render: render, repo: repo}
+func NewNoteHandler(render *render.RenderTenplate, session *scs.SessionManager, repo repositories.NoteRepository) *noteHandler {
+	return &noteHandler{render: render, session: session, repo: repo}
+}
+
+func (nh *noteHandler) getUserIDFromSession(r *http.Request) int64 {
+	return nh.session.GetInt64(r.Context(), "userID")
 }
 
 func (nh *noteHandler) NoteList(w http.ResponseWriter, r *http.Request) error {
-	notes, err := nh.repo.List(r.Context())
+	notes, err := nh.repo.List(r.Context(), int(nh.getUserIDFromSession(r)))
 	if err != nil {
 		return err
 	}
@@ -36,7 +42,7 @@ func (nh *noteHandler) NoteView(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	note, err := nh.repo.GetByID(r.Context(), id)
+	note, err := nh.repo.GetByID(r.Context(), int(nh.getUserIDFromSession(r)), id)
 	if err != nil {
 		return err
 	}
@@ -82,9 +88,9 @@ func (nh *noteHandler) NoteSave(w http.ResponseWriter, r *http.Request) error {
 
 	var note *models.Note
 	if id > 0 {
-		note, err = nh.repo.Update(r.Context(), id, title, content, color)
+		note, err = nh.repo.Update(r.Context(), int(nh.getUserIDFromSession(r)), id, title, content, color)
 	} else {
-		note, err = nh.repo.Create(r.Context(), title, content, color)
+		note, err = nh.repo.Create(r.Context(), int(nh.getUserIDFromSession(r)), title, content, color)
 	}
 
 	if err != nil {
@@ -101,7 +107,7 @@ func (nh *noteHandler) NoteDelete(w http.ResponseWriter, r *http.Request) error 
 	if err != nil {
 		return err
 	}
-	err = nh.repo.Delete(r.Context(), id)
+	err = nh.repo.Delete(r.Context(), int(nh.getUserIDFromSession(r)), id)
 	if err != nil {
 		return err
 	}
@@ -114,7 +120,8 @@ func (nh *noteHandler) NoteEdit(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	note, err := nh.repo.GetByID(r.Context(), id)
+	// note, err := nh.repo.GetByID(r.Context(), int(nh.getUserIDFromSession(r), id)))
+	note, err := nh.repo.GetByID(r.Context(), int(nh.getUserIDFromSession(r)), id)
 	if err != nil {
 		return err
 	}
