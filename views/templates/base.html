@@ -30,7 +30,7 @@
           <div class="right">
             {{ if isAuthenticated }}
             <a href="/user/signout">Sair</a>
-            <span class="profile">email@emaail.com</span>
+            <span class="profile">{{userEmail}}</span>
             {{ else }}
             <a href="/user/signup">Cadastrar-se</a>
             <a href="/user/signin">Fazer login</a>

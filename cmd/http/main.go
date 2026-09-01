@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"quicknotes/internal/mailer"
+	"strconv"
 	"time"
 
 	"github.com/alexedwards/scs/pgxstore"
@@ -26,6 +28,16 @@ func main() {
 	slog.Info("Conexão com o banco aconteceu com sucesso")
 	defer dbpool.Close()
 
+	//testar email
+	mailPort, _ := strconv.Atoi(config.MailPort)
+	mailService := mailer.NewSMTPMailService(mailer.SMTPConfig{
+		Host:     config.MailHost,
+		Port:     mailPort,
+		Username: config.MailUsername,
+		Password: config.MailPassword,
+		From:     config.MailFrom,
+	})
+
 	sesseionManager := scs.New()
 	sesseionManager.Lifetime = time.Hour
 	sesseionManager.Store = pgxstore.New(dbpool)
@@ -35,7 +47,7 @@ func main() {
 	// slog.Info(fmt.Sprintf("Servidor rodando na porta %s", config.ServerPort))
 
 	csrfMiddleware := csrf.Protect([]byte("32-byte-long-auth-key"))
-	mux := LoadRoutes(sesseionManager, dbpool)
+	mux := LoadRoutes(sesseionManager, mailService, dbpool)
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", config.ServerPort), sesseionManager.LoadAndSave(csrfMiddleware(mux))); err != nil {
 		panic(err)

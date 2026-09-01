@@ -11,9 +11,14 @@ import (
 )
 
 type Config struct {
-	ServerPort string `env:"SERVER_PORT,5000"`
-	DBConnURL  string `env:"DBConnUrl,required"`
-	LevelLog   string `env:"LEVEL_LOG,error"`
+	ServerPort   string `env:"SERVER_PORT,5000"`
+	DBConnURL    string `env:"DBConnUrl,required"`
+	LevelLog     string `env:"LEVEL_LOG,error"`
+	MailHost     string `env:"MAIL_HOST,required"`
+	MailPort     string `env:"MAIL_PORT,required"`
+	MailUsername string `env:"MAIL_USERNAME,required"`
+	MailPassword string `env:"MAIL_PASSWORD,required"`
+	MailFrom     string `env:"MAIL_FROM,nao-responder@quick.com"`
 }
 
 func (c Config) GetLevelLog() slog.Level {
@@ -82,7 +87,7 @@ func (c Config) validate() {
 		}
 	}
 	if validationMsg.Len() != 0 {
-		panic(validationMsg)
+		panic(validationMsg.String())
 	}
 }
 

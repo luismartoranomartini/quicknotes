@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"quicknotes/internal/mailer"
 	render "quicknotes/internal/render"
 	"quicknotes/internal/repositories"
 	"quicknotes/utils"
@@ -15,12 +16,13 @@ import (
 type userHandler struct {
 	render  *render.RenderTenplate
 	session *scs.SessionManager
+	mail    mailer.MailService
 	repo    repositories.UserRepository
 }
 
 // NewUserHandler -> função de construção
-func NewUserHandler(render *render.RenderTenplate, session *scs.SessionManager, repo repositories.UserRepository) *userHandler {
-	return &userHandler{render: render, session: session, repo: repo}
+func NewUserHandler(render *render.RenderTenplate, session *scs.SessionManager, mail mailer.MailService, repo repositories.UserRepository) *userHandler {
+	return &userHandler{render: render, session: session, mail: mail, repo: repo}
 }
 
 func (uh *userHandler) Me(w http.ResponseWriter, r *http.Request) error {
@@ -140,7 +142,7 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 
 	hasToken := utils.GenerateTokenKey()
 
-	user, token, err := uh.repo.Create(r.Context(), data.Email, hash, hasToken)
+	_, token, err := uh.repo.Create(r.Context(), data.Email, hash, hasToken)
 	if err == repositories.ErrDuplicateEmail {
 		data.AddFieldError("email", "Email já existe")
 		return uh.render.RenderPage(w, r, http.StatusUnprocessableEntity, "user-signup.html", data)
@@ -148,7 +150,19 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("Usuário criado:", user.ID)
+	// fmt.Println("Usuário criado:", user.ID)
+
+	body, err := uh.render.RenderMailBody("confirmation.html", token)
+	if err != nil {
+		return err
+	}
+	// enviar email de confirmaçãod de cadastro
+	uh.mail.Send(mailer.MailMessage{
+		To:      []string{data.Email},
+		Subject: "Confirmação de Cadastro",
+		IsHTML:  true,
+		Body:    body,
+	})
 
 	return uh.render.RenderPage(w, r, http.StatusOK, "user-signup-success.html", token)
 }
