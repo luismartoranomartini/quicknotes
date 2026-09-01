@@ -14,21 +14,24 @@ import (
 )
 
 type userHandler struct {
-	render  *render.RenderTenplate
+	render  *render.RenderTemplate
 	session *scs.SessionManager
 	mail    mailer.MailService
 	repo    repositories.UserRepository
 }
 
 // NewUserHandler -> função de construção
-func NewUserHandler(render *render.RenderTenplate, session *scs.SessionManager, mail mailer.MailService, repo repositories.UserRepository) *userHandler {
+func NewUserHandler(render *render.RenderTemplate, session *scs.SessionManager, mail mailer.MailService, repo repositories.UserRepository) *userHandler {
 	return &userHandler{render: render, session: session, mail: mail, repo: repo}
 }
 
 func (uh *userHandler) Me(w http.ResponseWriter, r *http.Request) error {
-
 	fmt.Fprintf(w, "Dados do usuário")
 	return nil
+}
+
+func (uh *userHandler) ForgetPassword(w http.ResponseWriter, r *http.Request) error {
+	return uh.render.RenderPage(w, r, http.StatusOK, "user-forget-password.html", nil)
 }
 
 func (uh *userHandler) SigninForm(w http.ResponseWriter, r *http.Request) error {

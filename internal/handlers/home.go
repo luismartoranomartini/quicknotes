@@ -6,10 +6,10 @@ import (
 )
 
 type homeHandler struct {
-	render *render.RenderTenplate
+	render *render.RenderTemplate
 }
 
-func NewHomeHandler(render *render.RenderTenplate) *homeHandler {
+func NewHomeHandler(render *render.RenderTemplate) *homeHandler {
 	return &homeHandler{render: render}
 }
 

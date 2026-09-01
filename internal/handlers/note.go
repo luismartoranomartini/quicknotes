@@ -15,12 +15,12 @@ import (
 )
 
 type noteHandler struct {
-	render  *render.RenderTenplate
+	render  *render.RenderTemplate
 	session *scs.SessionManager
 	repo    repositories.NoteRepository
 }
 
-func NewNoteHandler(render *render.RenderTenplate, session *scs.SessionManager, repo repositories.NoteRepository) *noteHandler {
+func NewNoteHandler(render *render.RenderTemplate, session *scs.SessionManager, repo repositories.NoteRepository) *noteHandler {
 	return &noteHandler{render: render, session: session, repo: repo}
 }
 

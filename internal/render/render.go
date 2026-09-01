@@ -11,15 +11,15 @@ import (
 	"github.com/gorilla/csrf"
 )
 
-type RenderTenplate struct {
+type RenderTemplate struct {
 	session *scs.SessionManager
 }
 
-func NewRender(session *scs.SessionManager) *RenderTenplate {
-	return &RenderTenplate{session: session}
+func NewRender(session *scs.SessionManager) *RenderTemplate {
+	return &RenderTemplate{session: session}
 }
 
-func (rt *RenderTenplate) RenderPage(w http.ResponseWriter, r *http.Request, status int, page string, data any) error {
+func (rt *RenderTemplate) RenderPage(w http.ResponseWriter, r *http.Request, status int, page string, data any) error {
 	files := []string{
 		"views/templates/base.html",
 	}
@@ -53,7 +53,7 @@ func (rt *RenderTenplate) RenderPage(w http.ResponseWriter, r *http.Request, sta
 	return nil
 }
 
-func (rt *RenderTenplate) RenderMailBody(mailTempl string, data any) ([]byte, error) {
+func (rt *RenderTemplate) RenderMailBody(mailTempl string, data any) ([]byte, error) {
 	tmpl, err := template.ParseFiles("views/templates/mails/" + mailTempl)
 	if err != nil {
 		slog.Error(err.Error())
