@@ -30,8 +30,45 @@ func (uh *userHandler) Me(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (uh *userHandler) ForgetPassword(w http.ResponseWriter, r *http.Request) error {
+func (uh *userHandler) ForgetPasswordForm(w http.ResponseWriter, r *http.Request) error {
 	return uh.render.RenderPage(w, r, http.StatusOK, "user-forget-password.html", nil)
+
+}
+
+func (uh *userHandler) ForgetPassword(w http.ResponseWriter, r *http.Request) error {
+	//ler o email do formulário
+	email := r.PostFormValue("email")
+
+	//gerar um token
+	hashToken := utils.GenerateTokenKey()
+
+	//inserir um registro na tabela de tokens (user_confirmation_tokens)
+	token, err := uh.repo.CreateResetPasswordToken(r.Context(), email, hashToken)
+
+	if err != nil {
+		data := UserRequest{}
+		data.Email = email
+		data.AddFieldError("email", "Email não possui cadastro no sistema")
+		return uh.render.RenderPage(w, r, http.StatusOK, "user-forget-password.html", data)
+	}
+	// enviar um email com o link
+	body, err := uh.render.RenderMailBody(r, "forgetpassword.html", token)
+	if err != nil {
+		return err
+	}
+
+	err = uh.mail.Send(mailer.MailMessage{
+		To:      []string{email},
+		Subject: "Resetar senha",
+		IsHTML:  true,
+		Body:    body,
+	})
+
+	if err != nil {
+		return err
+	}
+	message := "Foi enviado um email com o link"
+	return uh.render.RenderPage(w, r, http.StatusOK, "generic-success.html", message)
 }
 
 func (uh *userHandler) SigninForm(w http.ResponseWriter, r *http.Request) error {
@@ -155,7 +192,7 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 	}
 	// fmt.Println("Usuário criado:", user.ID)
 
-	body, err := uh.render.RenderMailBody("confirmation.html", token)
+	body, err := uh.render.RenderMailBody(r, "confirmation.html", token)
 	if err != nil {
 		return err
 	}

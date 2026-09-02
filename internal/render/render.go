@@ -53,17 +53,20 @@ func (rt *RenderTemplate) RenderPage(w http.ResponseWriter, r *http.Request, sta
 	return nil
 }
 
-func (rt *RenderTemplate) RenderMailBody(mailTempl string, data any) ([]byte, error) {
+func (rt *RenderTemplate) RenderMailBody(r *http.Request, mailTempl string, data any) ([]byte, error) {
 	tmpl, err := template.ParseFiles("views/templates/mails/" + mailTempl)
 	if err != nil {
 		slog.Error(err.Error())
 		return nil, err
 	}
+
 	w := &bytes.Buffer{}
+
 	err = tmpl.Execute(w, data)
 	if err != nil {
 		slog.Error(err.Error())
 		return nil, err
 	}
+
 	return w.Bytes(), nil
 }

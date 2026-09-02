@@ -12,11 +12,13 @@ import (
 )
 
 var ErrDuplicateEmail = newRepositoryError(errors.New("email duplicado"))
+var ErrEmailNotFound = newRepositoryError(errors.New("email not found"))
 var ErrInvalidTokenOrUserAlreadyConfirmed = newRepositoryError(errors.New("invalid token or user already confirmed"))
 
 type UserRepository interface {
 	Create(ctx context.Context, email, password, token string) (*models.User, string, error)
 	ConfirmUserByToken(ctx context.Context, token string) error
+	CreateResetPasswordToken(ctx context.Context, email, hashToken string) (string, error)
 	FindByEmail(ctx context.Context, email string) (*models.User, error)
 }
 
@@ -27,6 +29,18 @@ type userRepository struct {
 // NewUserRepository função de estanciação
 func NewUserRepository(db *pgxpool.Pool) UserRepository {
 	return &userRepository{db: db}
+}
+
+func (ur *userRepository) CreateResetPasswordToken(ctx context.Context, email, hashToken string) (string, error) {
+	user, err := ur.FindByEmail(ctx, email)
+	if err != nil || !user.Active.Bool {
+		return "", ErrEmailNotFound
+	}
+	userToken, err := ur.createConfirmationToken(ctx, user, hashToken)
+	if err != nil {
+		return "", ErrEmailNotFound
+	}
+	return userToken.Token.String, nil
 }
 
 func (ur *userRepository) Create(ctx context.Context, email, password, hashKey string) (*models.User, string, error) {
