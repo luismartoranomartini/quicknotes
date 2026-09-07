@@ -43,7 +43,10 @@ func LoadRoutes(sesseionManager *scs.SessionManager, mail mailer.MailService, db
 
 	mux.Handle("GET /user/signout", handlers.HandlerWithError(userHandler.Signout))
 
-	mux.Handle("GET /user/forgetpassword", handlers.HandlerWithError(userHandler.ForgetPassword))
+	mux.Handle("GET /user/forgetpassword", handlers.HandlerWithError(userHandler.ForgetPasswordForm))
+	mux.Handle("POST /user/forgetpassword", handlers.HandlerWithError(userHandler.ForgetPassword))
+
+	mux.Handle("GET /user/password/{token}", handlers.HandlerWithError(userHandler.ResetPasswordForm))
 
 	mux.Handle("GET /me", authMiddleware.RequireAuth(handlers.HandlerWithError(userHandler.Me)))
 

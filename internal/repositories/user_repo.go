@@ -19,6 +19,7 @@ type UserRepository interface {
 	Create(ctx context.Context, email, password, token string) (*models.User, string, error)
 	ConfirmUserByToken(ctx context.Context, token string) error
 	CreateResetPasswordToken(ctx context.Context, email, hashToken string) (string, error)
+	GetUserConfirmationByToken(ctx context.Context, token string) (*models.UserConfirmationToken, error)
 	FindByEmail(ctx context.Context, email string) (*models.User, error)
 }
 
@@ -29,6 +30,23 @@ type userRepository struct {
 // NewUserRepository função de estanciação
 func NewUserRepository(db *pgxpool.Pool) UserRepository {
 	return &userRepository{db: db}
+}
+
+func (ur *userRepository) GetUserConfirmationByToken(ctx context.Context, token string) (*models.UserConfirmationToken, error) {
+	var userToken models.UserConfirmationToken
+	query := `select id, user_id, token, confirmed, created_at, updated_at
+	from users_confirmation_tokens
+	where token = $1`
+
+	row := ur.db.QueryRow(ctx, query, token)
+	if err := row.Scan(&userToken.ID, &userToken.UserID,
+		&userToken.Token, &userToken.Confirmed, &userToken.CreatedAt,
+		&userToken.UpdatedAt); err != nil {
+		return nil, newRepositoryError(err)
+	}
+
+	return &userToken, nil
+
 }
 
 func (ur *userRepository) CreateResetPasswordToken(ctx context.Context, email, hashToken string) (string, error) {

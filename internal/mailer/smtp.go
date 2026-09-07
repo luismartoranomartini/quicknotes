@@ -27,6 +27,8 @@ func (ss smtpMailService) Send(msg MailMessage) error {
 	m.SetHeader("Subject", msg.Subject)
 	// m.SetAddressHeader("Bcc", "dan@example.com", "Dan")
 	if msg.IsHTML {
+		m.SetBody("text/html", string(msg.Body))
+	} else {
 		m.SetBody("text/plain", string(msg.Body))
 	}
 	// m.Attach("txt.md")

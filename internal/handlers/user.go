@@ -9,6 +9,7 @@ import (
 	"quicknotes/utils"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/alexedwards/scs/v2"
 )
@@ -52,7 +53,7 @@ func (uh *userHandler) ForgetPassword(w http.ResponseWriter, r *http.Request) er
 		return uh.render.RenderPage(w, r, http.StatusOK, "user-forget-password.html", data)
 	}
 	// enviar um email com o link
-	body, err := uh.render.RenderMailBody(r, "forgetpassword.html", token)
+	body, err := uh.render.RenderMailBody("forgetpassword.html", token)
 	if err != nil {
 		return err
 	}
@@ -69,6 +70,26 @@ func (uh *userHandler) ForgetPassword(w http.ResponseWriter, r *http.Request) er
 	}
 	message := "Foi enviado um email com o link"
 	return uh.render.RenderPage(w, r, http.StatusOK, "generic-success.html", message)
+}
+
+func (uh *userHandler) ResetPasswordForm(w http.ResponseWriter, r *http.Request) error {
+	token := r.PathValue("token")
+
+	userToken, err := uh.repo.GetUserConfirmationByToken(r.Context(), token)
+	elapsedTime := time.Since(userToken.CreatedAt.Time).Hours()
+
+	if err != nil || userToken.Confirmed.Bool || elapsedTime > 4 {
+		msg := "Token inválido ou expirado"
+		return uh.render.RenderPage(w, r, http.StatusOK, "generic-error.html", msg)
+	}
+
+	data := struct {
+		Token  string
+		Errors []string
+	}{
+		Token: token,
+	}
+	return uh.render.RenderPage(w, r, http.StatusOK, "user-reset-password.html", data)
 }
 
 func (uh *userHandler) SigninForm(w http.ResponseWriter, r *http.Request) error {
@@ -192,7 +213,7 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 	}
 	// fmt.Println("Usuário criado:", user.ID)
 
-	body, err := uh.render.RenderMailBody(r, "confirmation.html", token)
+	body, err := uh.render.RenderMailBody("confirmation.html", token)
 	if err != nil {
 		return err
 	}
