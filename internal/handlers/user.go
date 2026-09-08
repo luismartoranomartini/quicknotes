@@ -49,7 +49,7 @@ func (uh *userHandler) ForgetPassword(w http.ResponseWriter, r *http.Request) er
 	if err != nil {
 		data := UserRequest{}
 		data.Email = email
-		data.AddFieldError("email", "Email não possui cadastro no sistema")
+		data.AddFieldError("email", "Email não possui cadastro válido no sistema")
 		return uh.render.RenderPage(w, r, http.StatusOK, "user-forget-password.html", data)
 	}
 	// enviar um email com o link
@@ -73,6 +73,7 @@ func (uh *userHandler) ForgetPassword(w http.ResponseWriter, r *http.Request) er
 }
 
 func (uh *userHandler) ResetPasswordForm(w http.ResponseWriter, r *http.Request) error {
+	// leitura do token
 	token := r.PathValue("token")
 
 	userToken, err := uh.repo.GetUserConfirmationByToken(r.Context(), token)
@@ -92,10 +93,53 @@ func (uh *userHandler) ResetPasswordForm(w http.ResponseWriter, r *http.Request)
 	return uh.render.RenderPage(w, r, http.StatusOK, "user-reset-password.html", data)
 }
 
+func (uh *userHandler) ResetPassword(w http.ResponseWriter, r *http.Request) error {
+	// pegar os dados da senhar
+	password := r.PostFormValue("password")
+	token := r.PostFormValue("token")
+
+	//hash da senha
+	hashedPassword, err := utils.HashPassword(password)
+	if err != nil {
+		data := struct {
+			Token  string
+			Errors []string
+		}{
+			Token:  token,
+			Errors: []string{"Não foi possível alterar a senha"},
+		}
+		return uh.render.RenderPage(w, r, http.StatusOK, "user-reset-password.html", data)
+	}
+
+	// atualizar a senha no banco
+	email, err := uh.repo.UpdatePasswordByToken(r.Context(), hashedPassword, token)
+	if err != nil {
+		data := struct {
+			Token  string
+			Errors []string
+		}{
+			Token:  token,
+			Errors: []string{"Não foi possível alterar a senha"},
+		}
+		return uh.render.RenderPage(w, r, http.StatusOK, "user-reset-password.html", data)
+	}
+	// enviar email informando que a senha foi atualizada
+	uh.mail.Send(mailer.MailMessage{
+		To:      []string{email},
+		Subject: "Sua senha foi atualizada",
+		Body:    []byte("Sua senha foi atualizada e agora você pode usar o sistema"),
+	})
+
+	uh.session.Put(r.Context(), "flash", "Sua senha foi atualizada. Pode fazer o login")
+
+	http.Redirect(w, r, "/user/signin", http.StatusSeeOther)
+	return nil
+}
+
 func (uh *userHandler) SigninForm(w http.ResponseWriter, r *http.Request) error {
-	userID := uh.session.GetInt64(r.Context(), "userID")
-	fmt.Println("USER ID:", userID)
-	return uh.render.RenderPage(w, r, http.StatusOK, "user-signin.html", nil)
+	data := UserRequest{}
+	data.Flash = uh.session.PopString(r.Context(), "flash")
+	return uh.render.RenderPage(w, r, http.StatusOK, "user-signin.html", data)
 }
 
 func (uh *userHandler) Signin(w http.ResponseWriter, r *http.Request) error {

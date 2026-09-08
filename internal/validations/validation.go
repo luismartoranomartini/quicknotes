@@ -3,6 +3,7 @@ package validations
 
 type FormValidator struct {
 	FieldErrors map[string]string
+	Flash       string
 }
 
 func (fv *FormValidator) Valid() bool {
