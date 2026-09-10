@@ -53,7 +53,7 @@ func (uh *userHandler) ForgetPassword(w http.ResponseWriter, r *http.Request) er
 		return uh.render.RenderPage(w, r, http.StatusOK, "user-forget-password.html", data)
 	}
 	// enviar um email com o link
-	body, err := uh.render.RenderMailBody("forgetpassword.html", token)
+	body, err := uh.render.RenderMailBody(r, "forgetpassword.html", token)
 	if err != nil {
 		return err
 	}
@@ -257,7 +257,7 @@ func (uh *userHandler) Signup(w http.ResponseWriter, r *http.Request) error {
 	}
 	// fmt.Println("Usuário criado:", user.ID)
 
-	body, err := uh.render.RenderMailBody("confirmation.html", token)
+	body, err := uh.render.RenderMailBody(r, "confirmation.html", token)
 	if err != nil {
 		return err
 	}

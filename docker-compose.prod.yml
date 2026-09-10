@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+
+    networks:
+      - quicknotes
+    ports:
+      - "5432:5432"
+
+  server:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    networks:
+      - quicknotes
+    ports:
+      - "5000:5000"
+    environment:
+      DBConnUrl: "postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_USER}?sslmode=disable"
+
+networks:
+  quicknotes:
+
+volumes:
+  pgdata:

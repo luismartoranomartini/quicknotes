@@ -13,6 +13,6 @@ func NewHomeHandler(render *render.RenderTemplate) *homeHandler {
 	return &homeHandler{render: render}
 }
 
-func (hh *homeHandler) HomeHandler(w http.ResponseWriter, r *http.Request) {
-	hh.render.RenderPage(w, r, http.StatusOK, "home.html", nil)
+func (hh *homeHandler) HomeHandler(w http.ResponseWriter, r *http.Request) error {
+	return hh.render.RenderPage(w, r, http.StatusOK, "home.html", nil)
 }
